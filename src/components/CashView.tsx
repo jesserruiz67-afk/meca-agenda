@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
+  AlertCircle,
   Wallet,
   Plus,
   Trash2,
@@ -9,22 +10,36 @@ import {
   Banknote,
   Landmark,
   CreditCard,
+  Cloud,
+  Download,
+  Loader2,
+  Share2,
 } from 'lucide-react';
 import type { Maintenance, PaymentMethod, Transaction } from '../types';
+import {
+  allCashMovements,
+  cashTotals,
+  filterByPeriod,
+  type CashPeriod,
+} from '../lib/cash';
+import { downloadBlob, shareOrDownload } from '../lib/files';
+import type { Profile } from '../lib/profiles';
+import {
+  buildCashBackup,
+  cashBackupCsv,
+  cashBackupFileName,
+} from '../lib/reports';
 import {
   PAYMENT_LABELS,
   formatDate,
   formatMoney,
-  monthKey,
   todayISO,
-  toISO,
 } from '../lib/utils';
 import StatCard from './StatCard';
 import TransactionForm from './TransactionForm';
 
-type Period = 'hoy' | 'mes';
-
 type Props = {
+  profile: Profile;
   transactions: Transaction[];
   maintenances: Maintenance[];
   onAdd: (transaction: Transaction) => void;
@@ -44,86 +59,30 @@ const SHORT_LABELS: Record<PaymentMethod, string> = {
 };
 
 export default function CashView({
+  profile,
   transactions,
   maintenances,
   onAdd,
   onDelete,
 }: Props) {
-  const [period, setPeriod] = useState<Period>('hoy');
+  const [period, setPeriod] = useState<CashPeriod>('hoy');
   const [countedCash, setCountedCash] = useState('');
   const [formOpen, setFormOpen] = useState(false);
+  const [exporting, setExporting] = useState<'json' | 'csv' | null>(null);
+  const [exportMessage, setExportMessage] = useState('');
+  const [exportError, setExportError] = useState('');
 
-  const allMovements = useMemo(() => {
-    const serviceIncomes: Transaction[] = maintenances
-      .filter((item) => item.completed && item.totalAmount > 0)
-      .map((item) => ({
-        id: `service-${item.id}`,
-        date: item.completedAt
-          ? toISO(new Date(item.completedAt))
-          : item.dueDate,
-        type: 'ingreso',
-        description: `${item.services.join(', ')} - ${item.clientName}`,
-        amount: item.totalAmount,
-        method: item.paymentMethod,
-        maintenanceId: item.id,
-        createdAt: item.completedAt ?? item.createdAt,
-      }));
-    const manual = transactions.filter(
-      (transaction) => !transaction.maintenanceId,
-    );
-    return [...serviceIncomes, ...manual];
-  }, [maintenances, transactions]);
+  const allMovements = useMemo(
+    () => allCashMovements(maintenances, transactions),
+    [maintenances, transactions],
+  );
 
-  const filtered = useMemo(() => {
-    const today = todayISO();
-    const month = monthKey();
-    return allMovements
-      .filter((transaction) =>
-        period === 'hoy'
-          ? transaction.date === today
-          : transaction.date.startsWith(month),
-      )
-      .sort((a, b) => {
-        if (a.date !== b.date) return b.date.localeCompare(a.date);
-        return b.createdAt.localeCompare(a.createdAt);
-      });
-  }, [allMovements, period]);
+  const filtered = useMemo(
+    () => filterByPeriod(allMovements, period),
+    [allMovements, period],
+  );
 
-  const totals = useMemo(() => {
-    let ingresos = 0;
-    let egresos = 0;
-    let cashIn = 0;
-    let cashOut = 0;
-    const byMethod: Record<PaymentMethod, number> = {
-      efectivo: 0,
-      transferencia: 0,
-      tarjeta: 0,
-    };
-
-    for (const transaction of filtered) {
-      const sign = transaction.type === 'ingreso' ? 1 : -1;
-      const signed = transaction.amount * sign;
-      if (transaction.type === 'ingreso') ingresos += transaction.amount;
-      else egresos += transaction.amount;
-
-      byMethod[transaction.method] += signed;
-
-      if (transaction.method === 'efectivo') {
-        if (transaction.type === 'ingreso') cashIn += transaction.amount;
-        else cashOut += transaction.amount;
-      }
-    }
-
-    return {
-      ingresos,
-      egresos,
-      balance: ingresos - egresos,
-      cashIn,
-      cashOut,
-      expectedCash: cashIn - cashOut,
-      byMethod,
-    };
-  }, [filtered]);
+  const totals = useMemo(() => cashTotals(filtered), [filtered]);
 
   const hasCount = countedCash.trim() !== '';
   const difference = hasCount ? Number(countedCash) - totals.expectedCash : 0;
@@ -143,6 +102,44 @@ export default function CashView({
         : 'text-red-300';
 
   const periodLabel = period === 'hoy' ? 'hoy' : 'este mes';
+
+  async function handleCashExport(format: 'json' | 'csv') {
+    setExporting(format);
+    setExportMessage('');
+    setExportError('');
+    try {
+      const data = buildCashBackup(profile, maintenances, transactions);
+      const filename = cashBackupFileName(profile, format, todayISO());
+      if (format === 'csv') {
+        const csv = cashBackupCsv(data);
+        downloadBlob(
+          new Blob([csv], { type: 'text/csv;charset=utf-8' }),
+          filename,
+        );
+        setExportMessage('CSV de caja descargado.');
+      } else {
+        const outcome = await shareOrDownload(
+          new Blob([JSON.stringify(data, null, 2)], {
+            type: 'application/json',
+          }),
+          filename,
+          'Respaldo de caja MecaAgenda',
+          `Caja de ${profile.shopName}`,
+        );
+        setExportMessage(
+          outcome === 'shared'
+            ? 'Respaldo de caja compartido.'
+            : outcome === 'cancelled'
+              ? 'Se canceló el compartir.'
+              : 'Respaldo de caja descargado.',
+        );
+      }
+    } catch {
+      setExportError('No se pudo generar el respaldo de caja.');
+    } finally {
+      setExporting(null);
+    }
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -290,6 +287,64 @@ export default function CashView({
           })}
         </div>
       </section>
+      </div>
+
+      <div className="shrink-0 px-4 pt-2">
+        <section className="rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-200">
+                <Cloud className="h-3.5 w-3.5 text-emerald-400" />
+                Respaldo de caja
+              </p>
+              <p className="truncate text-[10px] text-slate-500">
+                Aparte del respaldo general, listo para Drive.
+              </p>
+            </div>
+            <div className="flex shrink-0 gap-1.5">
+              <button
+                type="button"
+                onClick={() => handleCashExport('json')}
+                disabled={exporting !== null}
+                title="Compartir o guardar la caja en Drive"
+                aria-label="Compartir o guardar la caja en Drive"
+                className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-emerald-500 disabled:opacity-60"
+              >
+                {exporting === 'json' ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Share2 className="h-3.5 w-3.5" />
+                )}
+                <span className="hidden sm:inline">Drive</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCashExport('csv')}
+                disabled={exporting !== null}
+                title="Descargar la caja en CSV"
+                aria-label="Descargar la caja en CSV"
+                className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1.5 text-[11px] font-medium text-slate-200 hover:bg-slate-700 disabled:opacity-60"
+              >
+                {exporting === 'csv' ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Download className="h-3.5 w-3.5" />
+                )}
+                CSV
+              </button>
+            </div>
+          </div>
+          {(exportMessage || exportError) && (
+            <p
+              className={`mt-1.5 flex items-start gap-1 text-[10px] ${
+                exportError ? 'text-red-300' : 'text-emerald-300'
+              }`}
+            >
+              <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" />
+              {exportError || exportMessage}
+            </p>
+          )}
+        </section>
       </div>
 
       <section className="mt-2 flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pb-4">

@@ -11,11 +11,13 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import type { Backup } from '../types';
-import { restoreBackup } from '../lib/storage';
+import {
+  readLastBackupAt,
+  restoreBackup,
+  writeLastBackupAt,
+} from '../lib/storage';
 import { todayISO } from '../lib/utils';
 import StatCard from './StatCard';
-
-const LAST_BACKUP_KEY = 'meca-agenda:last-backup';
 
 type ShareNavigator = Navigator & {
   canShare?: (data: { files?: File[] }) => boolean;
@@ -27,23 +29,28 @@ type ShareNavigator = Navigator & {
 };
 
 type Props = {
+  profileId: string;
   buildBackup: () => Backup;
   onRestored: () => void;
 };
 
-export default function BackupView({ buildBackup, onRestored }: Props) {
+export default function BackupView({
+  profileId,
+  buildBackup,
+  onRestored,
+}: Props) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [lastBackup, setLastBackup] = useState(
-    () => localStorage.getItem(LAST_BACKUP_KEY) ?? '',
+  const [lastBackup, setLastBackup] = useState(() =>
+    readLastBackupAt(profileId),
   );
 
   const summary = buildBackup();
 
   function markSaved() {
     const now = new Date().toISOString();
-    localStorage.setItem(LAST_BACKUP_KEY, now);
+    writeLastBackupAt(profileId, now);
     setLastBackup(now);
     setMessage('Respaldo generado correctamente.');
     setError('');
@@ -113,12 +120,12 @@ export default function BackupView({ buildBackup, onRestored }: Props) {
         }
         if (
           !window.confirm(
-            'Esto reemplaza todos los datos actuales de este dispositivo con los del respaldo. ¿Continuar?',
+            'Esto reemplaza los datos actuales de este perfil con los del respaldo. ¿Continuar?',
           )
         ) {
           return;
         }
-        restoreBackup(parsed);
+        restoreBackup(profileId, parsed);
         onRestored();
         setMessage(
           `Respaldo restaurado: ${parsed.maintenances.length} registros, ${parsed.products.length} productos y ${parsed.transactions.length} movimientos.`,
@@ -253,6 +260,10 @@ export default function BackupView({ buildBackup, onRestored }: Props) {
           <li>
             Para restaurar en el celular, abrí el archivo desde Drive y elegilo
             acá, o descargalo y seleccionalo.
+          </li>
+          <li>
+            La caja también se puede respaldar por separado desde el módulo
+            Caja, con sus propios botones para Drive y CSV.
           </li>
         </ul>
       </section>

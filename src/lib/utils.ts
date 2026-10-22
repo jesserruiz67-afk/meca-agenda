@@ -3,6 +3,7 @@ import type {
   MaintenanceStatus,
   PaymentMethod,
 } from '../types';
+import { DEFAULT_CURRENCY, type CurrencyCode } from './currency';
 
 export function startOfDay(date: Date): Date {
   const copy = new Date(date);
@@ -124,8 +125,51 @@ export function whatsappLink(phone: string, message: string): string {
     : `https://wa.me/?text=${text}`;
 }
 
+let activeCurrency: CurrencyCode = DEFAULT_CURRENCY;
+
+export function setActiveCurrency(currency: CurrencyCode): void {
+  activeCurrency = currency;
+}
+
+export function getActiveCurrency(): CurrencyCode {
+  return activeCurrency;
+}
+
 export function formatMoney(amount: number): string {
-  return `$ ${Math.round(amount).toLocaleString('es-AR')}`;
+  return new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency: activeCurrency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
+export function formatMoneyPlain(
+  amount: number,
+  currency: CurrencyCode = activeCurrency,
+): string {
+  const value = new Intl.NumberFormat('es-AR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(amount);
+  return `${value} ${currency}`;
+}
+
+export function shortDate(iso: string): string {
+  if (!iso) return '';
+  const [year, month, day] = iso.split('-');
+  return `${day}/${month}/${year}`;
+}
+
+export function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString('es-AR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  });
+}
+
+export function round2(amount: number): number {
+  return Math.round(amount * 100) / 100;
 }
 
 export function monthKey(date = new Date()): string {
