@@ -8,6 +8,7 @@ import {
   CalendarClock,
   CalendarDays,
   ListChecks,
+  CheckCircle2,
 } from 'lucide-react';
 import type { Maintenance, VehicleType } from '../types';
 import { getStatus } from '../lib/utils';
@@ -105,30 +106,38 @@ export default function AgendaView({
           value={counts.vencidos}
           icon={AlertTriangle}
           accent="bg-red-500/15 text-red-400"
+          onClick={() => setFilter('vencidos')}
+          active={filter === 'vencidos'}
         />
         <StatCard
           label="Para hoy"
           value={counts.hoy}
           icon={CalendarClock}
           accent="bg-amber-500/15 text-amber-400"
+          onClick={() => setFilter('hoy')}
+          active={filter === 'hoy'}
         />
         <StatCard
           label="Esta semana"
           value={counts.semana}
           icon={CalendarDays}
           accent="bg-sky-500/15 text-sky-400"
+          onClick={() => setFilter('semana')}
+          active={filter === 'semana'}
         />
         <StatCard
           label="Pendientes totales"
           value={counts.pendientes}
           icon={ListChecks}
           accent="bg-slate-500/15 text-slate-300"
+          onClick={() => setFilter('pendientes')}
+          active={filter === 'pendientes'}
         />
         </section>
       </div>
 
       <div className="shrink-0 px-4 pt-3">
-        <div className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+        <div className="no-scrollbar -mx-1 hidden gap-1.5 overflow-x-auto px-1 pb-1 sm:flex">
           {filters.map((option) => (
             <button
               key={option.id}
@@ -158,7 +167,8 @@ export default function AgendaView({
             onChange={(e) =>
               setVehicleFilter(e.target.value as VehicleFilter)
             }
-            className="w-24 shrink-0 rounded-lg border border-slate-800 bg-slate-900 px-2 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/60 sm:w-auto sm:px-3 sm:text-sm"
+            aria-label="Filtrar por vehículo"
+            className="w-20 shrink-0 rounded-lg border border-slate-800 bg-slate-900 px-2 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/60 sm:w-auto sm:px-3 sm:text-sm"
           >
             <option value="todos">Todos</option>
             <option value="carro">Carros</option>
@@ -169,10 +179,36 @@ export default function AgendaView({
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar..."
+              placeholder="Buscar"
               className="w-full rounded-lg border border-slate-800 bg-slate-900 py-2 pl-8 pr-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/60 sm:w-56"
             />
           </div>
+          <button
+            type="button"
+            onClick={() =>
+              setFilter((current) =>
+                current === 'completados' ? 'pendientes' : 'completados',
+              )
+            }
+            aria-label={
+              filter === 'completados'
+                ? 'Volver a pendientes'
+                : 'Ver trabajos completados'
+            }
+            aria-pressed={filter === 'completados'}
+            title={
+              filter === 'completados'
+                ? 'Volver a pendientes'
+                : 'Ver trabajos completados'
+            }
+            className={`inline-flex shrink-0 items-center justify-center rounded-lg p-2 transition sm:hidden ${
+              filter === 'completados'
+                ? 'bg-amber-500 text-slate-950'
+                : 'bg-slate-900 text-slate-400 ring-1 ring-slate-800 hover:text-slate-200'
+            }`}
+          >
+            <CheckCircle2 className="h-4 w-4" />
+          </button>
           <button
             type="button"
             onClick={onNew}
@@ -185,7 +221,19 @@ export default function AgendaView({
         </div>
       </div>
 
-      <section className="mt-3 flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pb-4">
+      <section className="no-scrollbar mt-3 flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pb-4">
+        {filter === 'completados' && (
+          <div className="mb-2 flex items-center justify-between gap-2 text-[11px] text-slate-400">
+            <span>Mostrando completados ({counts.completados})</span>
+            <button
+              type="button"
+              onClick={() => setFilter('pendientes')}
+              className="font-medium text-amber-300 hover:text-amber-200"
+            >
+              Volver
+            </button>
+          </div>
+        )}
         <div className="space-y-3">
         {visibleItems.map((item) => (
           <MaintenanceCard

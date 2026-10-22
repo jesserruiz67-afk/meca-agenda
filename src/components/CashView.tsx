@@ -142,7 +142,7 @@ export default function CashView({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="no-scrollbar h-full overflow-y-auto overscroll-contain pb-4">
       <div className="shrink-0 px-4 pt-3">
       <section className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         <StatCard
@@ -297,7 +297,7 @@ export default function CashView({
                 <Cloud className="h-3.5 w-3.5 text-emerald-400" />
                 Respaldo de caja
               </p>
-              <p className="truncate text-[10px] text-slate-500">
+              <p className="hidden truncate text-[10px] text-slate-500 sm:block">
                 Aparte del respaldo general, listo para Drive.
               </p>
             </div>
@@ -347,7 +347,7 @@ export default function CashView({
         </section>
       </div>
 
-      <section className="mt-2 flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pb-4">
+      <section className="mt-4 px-4">
         <h2 className="mb-1 text-sm font-semibold text-slate-300">
           Movimientos de {periodLabel}
         </h2>

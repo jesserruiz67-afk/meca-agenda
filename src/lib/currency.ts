@@ -10,6 +10,7 @@ export const CURRENCIES = [
   { code: 'MXN', label: 'Peso mexicano' },
   { code: 'COP', label: 'Peso colombiano' },
   { code: 'BOB', label: 'Boliviano' },
+  { code: 'NIO', label: 'Córdoba nicaragüense' },
 ] as const;
 
 export type CurrencyCode = (typeof CURRENCIES)[number]['code'];

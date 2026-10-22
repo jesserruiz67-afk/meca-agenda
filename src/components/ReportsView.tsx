@@ -177,7 +177,7 @@ export default function ReportsView({
         )}
       </div>
 
-      <div className="mt-2 flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pb-4">
+      <div className="no-scrollbar mt-2 flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pb-4">
         <div className="space-y-3">
           <section>
             <div className="mb-1.5 flex items-center justify-between">

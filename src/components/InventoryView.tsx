@@ -120,7 +120,7 @@ export default function InventoryView({
         </div>
       </div>
 
-      <div className="mt-3 flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pb-4">
+      <div className="no-scrollbar mt-3 flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pb-4">
         {visible.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 px-6 py-10 text-center">
             <Package className="mx-auto h-9 w-9 text-slate-600" />

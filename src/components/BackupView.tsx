@@ -140,7 +140,7 @@ export default function BackupView({
   }
 
   return (
-    <div className="h-full min-h-0 overflow-y-auto overscroll-contain px-4 pb-4 pt-3">
+    <div className="no-scrollbar h-full min-h-0 overflow-y-auto overscroll-contain px-4 pb-4 pt-3">
       <section className="grid grid-cols-3 gap-2 sm:gap-3">
         <StatCard
           label="Registros"
