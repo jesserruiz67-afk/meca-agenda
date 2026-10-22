@@ -390,15 +390,15 @@ export default function WorkshopApp({
       <header className="shrink-0 border-b border-slate-900 bg-slate-950/95 px-4 py-2.5">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2.5">
-            <div className="rounded-xl bg-amber-500/15 p-2 text-amber-400 ring-1 ring-amber-500/30">
+            <div className="shrink-0 rounded-xl bg-amber-500/15 p-2 text-amber-400 ring-1 ring-amber-500/30">
               <Wrench className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-lg font-bold leading-none tracking-tight">
-                MecaAgenda
-              </h1>
-              <p className="mt-0.5 hidden truncate text-xs text-slate-400 sm:block">
+              <h1 className="truncate text-base font-bold leading-none tracking-tight sm:text-lg">
                 {profile.shopName}
+              </h1>
+              <p className="mt-0.5 truncate text-[10px] text-slate-400 sm:text-xs">
+                por MecaAgenda
               </p>
             </div>
           </div>

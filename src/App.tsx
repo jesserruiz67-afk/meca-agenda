@@ -35,6 +35,12 @@ export default function App() {
     const sessionId = getSessionProfileId();
     return loadProfiles().find((entry) => entry.id === sessionId) ?? null;
   });
+
+  useEffect(() => {
+    document.title = profile
+      ? `${profile.shopName} · MecaAgenda`
+      : 'MecaAgenda';
+  }, [profile]);
   const [, setTick] = useState(0);
 
   useEffect(() => {

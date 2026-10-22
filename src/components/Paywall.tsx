@@ -61,9 +61,11 @@ export default function Paywall({
           <div className="rounded-2xl bg-amber-500/15 p-3.5 text-amber-400 ring-1 ring-amber-500/30">
             <Wrench className="h-7 w-7" />
           </div>
-          <h1 className="mt-3 text-2xl font-bold tracking-tight">MecaAgenda</h1>
+          <h1 className="mt-3 max-w-full truncate px-2 text-2xl font-bold tracking-tight">
+            {profile.shopName}
+          </h1>
           <p className="mt-1 text-xs text-slate-400">
-            {profile.shopName} · {profile.name}
+            por MecaAgenda · {profile.name}
           </p>
         </div>
 
