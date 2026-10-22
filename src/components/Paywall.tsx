@@ -2,16 +2,20 @@ import { useState, type FormEvent } from 'react';
 import {
   AlertCircle,
   Check,
+  Link2,
   Loader2,
   LockKeyhole,
   LogOut,
   ShieldCheck,
+  Wallet,
   Wrench,
 } from 'lucide-react';
-import { PLAN_PRICE_USD, type Profile } from '../lib/profiles';
+import type { Profile } from '../lib/profiles';
+import type { AppSettings } from '../lib/settings';
 
 type Props = {
   profile: Profile;
+  appSettings: AppSettings;
   onActivate: (code: string) => Promise<boolean>;
   onLogout: () => void;
 };
@@ -26,6 +30,7 @@ const BENEFITS = [
 
 export default function Paywall({
   profile,
+  appSettings,
   onActivate,
   onLogout,
 }: Props) {
@@ -83,7 +88,7 @@ export default function Paywall({
             <p className="text-xs font-medium text-amber-200">Plan anual</p>
             <p className="mt-1 flex items-baseline gap-1.5">
               <span className="text-3xl font-bold text-white">
-                USD {PLAN_PRICE_USD.toFixed(2)}
+                USD {appSettings.priceUsd.toFixed(2)}
               </span>
               <span className="text-sm text-slate-300">/ año</span>
             </p>
@@ -91,6 +96,46 @@ export default function Paywall({
               Un solo pago por 12 meses. Sin renovación automática.
             </p>
           </div>
+
+          {(appSettings.paypalLink || appSettings.paymentLink) && (
+            <div className="mt-3 rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+              <p className="text-xs font-medium text-slate-300">
+                Pagá online
+              </p>
+              <div
+                className={`mt-2 grid gap-2 ${
+                  appSettings.paypalLink && appSettings.paymentLink
+                    ? 'grid-cols-2'
+                    : 'grid-cols-1'
+                }`}
+              >
+                {appSettings.paypalLink && (
+                  <a
+                    href={appSettings.paypalLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-sky-500/15 px-3 py-2 text-xs font-semibold text-sky-200 ring-1 ring-sky-500/30 hover:bg-sky-500/25"
+                  >
+                    <Wallet className="h-3.5 w-3.5" /> PayPal
+                  </a>
+                )}
+                {appSettings.paymentLink && (
+                  <a
+                    href={appSettings.paymentLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-500/15 px-3 py-2 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-500/30 hover:bg-emerald-500/25"
+                  >
+                    <Link2 className="h-3.5 w-3.5" /> Link de pago
+                  </a>
+                )}
+              </div>
+              <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
+                Después de pagar, el taller te entrega un código de
+                activación para desbloquear la app.
+              </p>
+            </div>
+          )}
 
           <ul className="mt-4 space-y-2">
             {BENEFITS.map((benefit) => (
@@ -136,8 +181,9 @@ export default function Paywall({
           </form>
 
           <p className="mt-3 rounded-lg bg-slate-950/60 px-3 py-2 text-[11px] leading-relaxed text-slate-500">
-            Pago simulado en esta versión: el cobro se coordina por fuera y se
-            entrega el código de activación. No se piden datos de tarjeta.
+            El cobro se coordina por fuera: pagá con PayPal o el link de pago
+            y después ingresá el código de activación. No se piden datos de
+            tarjeta.
           </p>
         </div>
 

@@ -9,8 +9,12 @@ import {
   CalendarDays,
   ListChecks,
   CheckCircle2,
+  Link2,
+  Share2,
+  Wallet,
 } from 'lucide-react';
 import type { Maintenance, VehicleType } from '../types';
+import type { WorkshopSettings } from '../lib/settings';
 import { getStatus } from '../lib/utils';
 import MaintenanceCard from './MaintenanceCard';
 import StatCard from './StatCard';
@@ -21,6 +25,7 @@ type VehicleFilter = 'todos' | VehicleType;
 type Props = {
   items: Maintenance[];
   shopName: string;
+  settings: WorkshopSettings;
   onNew: () => void;
   onSeed: () => void;
   onToggle: (id: string) => void;
@@ -32,6 +37,7 @@ type Props = {
 export default function AgendaView({
   items,
   shopName,
+  settings,
   onNew,
   onSeed,
   onToggle,
@@ -42,6 +48,7 @@ export default function AgendaView({
   const [filter, setFilter] = useState<FilterId>('pendientes');
   const [vehicleFilter, setVehicleFilter] = useState<VehicleFilter>('todos');
   const [query, setQuery] = useState('');
+  const [shared, setShared] = useState(false);
   const listRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -94,6 +101,39 @@ export default function AgendaView({
       });
   }, [items, filter, vehicleFilter, query]);
 
+  const paypalLink = settings.enabledMethods.includes('paypal')
+    ? settings.paypalLink
+    : '';
+  const paymentLink = settings.enabledMethods.includes('link')
+    ? settings.paymentLink
+    : '';
+  const paymentLinkLabel = settings.paymentLinkLabel || 'Link de pago';
+  const hasLinks =
+    settings.showPaymentLinks && Boolean(paypalLink || paymentLink);
+
+  async function shareLinks() {
+    const text = [
+      paypalLink ? `PayPal: ${paypalLink}` : '',
+      paymentLink ? `${paymentLinkLabel}: ${paymentLink}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n');
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `Cobros de ${shopName}`,
+          text,
+        });
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      setShared(true);
+      window.setTimeout(() => setShared(false), 2000);
+    } catch {
+      /* el usuario canceló o el navegador no permite compartir */
+    }
+  }
+
   const filters: { id: FilterId; label: string; count: number }[] = [
     { id: 'pendientes', label: 'Pendientes', count: counts.pendientes },
     { id: 'vencidos', label: 'Vencidos', count: counts.vencidos },
@@ -139,6 +179,63 @@ export default function AgendaView({
           active={filter === 'pendientes'}
         />
         </section>
+        {settings.welcomeMessage && (
+          <p className="mt-2 rounded-lg border border-slate-800 bg-slate-900/50 px-3 py-2 text-[11px] leading-relaxed text-slate-300">
+            {settings.welcomeMessage}
+          </p>
+        )}
+        {hasLinks && (
+          <section className="mt-2 rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[11px] font-medium text-slate-300">
+                Links de cobro
+              </p>
+              <button
+                type="button"
+                onClick={shareLinks}
+                aria-label="Compartir links de cobro"
+                title="Compartir links de cobro"
+                className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-medium text-amber-300 hover:bg-amber-500/10"
+              >
+                {shared ? (
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                ) : (
+                  <Share2 className="h-3.5 w-3.5" />
+                )}
+                {shared ? 'Copiado' : 'Compartir'}
+              </button>
+            </div>
+            <div
+              className={`mt-2 grid gap-2 ${
+                paypalLink && paymentLink ? 'sm:grid-cols-2' : ''
+              }`}
+            >
+              {paypalLink && (
+                <a
+                  href={paypalLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-slate-800 px-2 py-2 text-xs font-medium text-slate-100 ring-1 ring-slate-700 hover:bg-slate-700"
+                >
+                  <Wallet className="h-3.5 w-3.5 text-sky-300" /> PayPal
+                </a>
+              )}
+              {paymentLink && (
+                <a
+                  href={paymentLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-slate-800 px-2 py-2 text-xs font-medium text-slate-100 ring-1 ring-slate-700 hover:bg-slate-700"
+                >
+                  <Link2 className="h-3.5 w-3.5 text-emerald-300" />
+                  <span className="truncate text-center">
+                    {paymentLinkLabel}
+                  </span>
+                </a>
+              )}
+            </div>
+          </section>
+        )}
       </div>
 
       <div className="shrink-0 px-4 pt-3">

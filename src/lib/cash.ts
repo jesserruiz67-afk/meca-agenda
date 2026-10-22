@@ -77,6 +77,8 @@ export function cashTotals(movements: CashMovement[]): CashTotals {
     efectivo: 0,
     transferencia: 0,
     tarjeta: 0,
+    paypal: 0,
+    link: 0,
   };
 
   for (const transaction of movements) {

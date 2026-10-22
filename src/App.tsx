@@ -9,15 +9,28 @@ import {
   getAccess,
   getSessionProfileId,
   loadProfiles,
+  revokeProfileAccess,
+  setProfileAccess,
+  setProfilePin,
+  setProfileRole,
   setSessionProfileId,
   updateProfile,
   type NewProfileInput,
   type Profile,
+  type ProfileRole,
 } from './lib/profiles';
 import { hasLegacyData } from './lib/storage';
+import {
+  loadAppSettings,
+  saveAppSettings,
+  type AppSettings,
+} from './lib/settings';
 
 export default function App() {
   const [profiles, setProfiles] = useState<Profile[]>(loadProfiles);
+  const [appSettings, setAppSettings] = useState<AppSettings>(
+    loadAppSettings,
+  );
   const [profile, setProfile] = useState<Profile | null>(() => {
     const sessionId = getSessionProfileId();
     return loadProfiles().find((entry) => entry.id === sessionId) ?? null;
@@ -63,6 +76,47 @@ export default function App() {
     setProfiles(loadProfiles());
   }
 
+  function handleSaveAppSettings(next: AppSettings) {
+    setAppSettings(next);
+    saveAppSettings(next);
+  }
+
+  function handleAdminUpdateProfile(next: Profile) {
+    updateProfile(next);
+    setProfiles(loadProfiles());
+    setProfile((current) => (current?.id === next.id ? next : current));
+  }
+
+  function handleAdminSetAccess(
+    profileId: string,
+    action: 'activate' | 'revoke',
+  ) {
+    const target = loadProfiles().find((entry) => entry.id === profileId);
+    if (!target) return;
+    const updated =
+      action === 'activate'
+        ? setProfileAccess(target, 12)
+        : revokeProfileAccess(target);
+    setProfiles(loadProfiles());
+    setProfile((current) => (current?.id === updated.id ? updated : current));
+  }
+
+  async function handleAdminResetPin(profileId: string, pin: string) {
+    const target = loadProfiles().find((entry) => entry.id === profileId);
+    if (!target) return;
+    const updated = await setProfilePin(target, pin);
+    setProfiles(loadProfiles());
+    setProfile((current) => (current?.id === updated.id ? updated : current));
+  }
+
+  function handleAdminSetRole(profileId: string, role: ProfileRole) {
+    const target = loadProfiles().find((entry) => entry.id === profileId);
+    if (!target) return;
+    const updated = setProfileRole(target, role);
+    setProfiles(loadProfiles());
+    setProfile((current) => (current?.id === updated.id ? updated : current));
+  }
+
   async function handleActivate(code: string): Promise<boolean> {
     if (!profile) return false;
     const updated = activateProfile(profile, code);
@@ -90,6 +144,7 @@ export default function App() {
     return (
       <Paywall
         profile={profile}
+        appSettings={appSettings}
         onActivate={handleActivate}
         onLogout={handleLogout}
       />
@@ -100,10 +155,17 @@ export default function App() {
     <WorkshopApp
       key={profile.id}
       profile={profile}
+      profiles={profiles}
       access={access}
+      appSettings={appSettings}
       onUpdateProfile={handleUpdateProfile}
       onActivate={handleActivate}
       onLogout={handleLogout}
+      onSaveAppSettings={handleSaveAppSettings}
+      onAdminUpdateProfile={handleAdminUpdateProfile}
+      onAdminSetAccess={handleAdminSetAccess}
+      onAdminResetPin={handleAdminResetPin}
+      onAdminSetRole={handleAdminSetRole}
     />
   );
 }

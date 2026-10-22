@@ -8,7 +8,11 @@ import {
   PAYMENT_LABELS,
 } from './utils';
 
-export function generateInvoicePdf(item: Maintenance, shopName: string): void {
+export function generateInvoicePdf(
+  item: Maintenance,
+  shopName: string,
+  details?: { phone?: string; address?: string },
+): void {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -27,6 +31,15 @@ export function generateInvoicePdf(item: Maintenance, shopName: string): void {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.text('Servicio mecánico y mantenimiento', margin, 26);
+
+  const contact = [details?.phone, details?.address]
+    .filter(Boolean)
+    .join(' · ');
+  if (contact) {
+    doc.setFontSize(8);
+    const line = doc.splitTextToSize(contact, right - margin)[0];
+    doc.text(line, margin, 33);
+  }
 
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');

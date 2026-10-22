@@ -8,8 +8,11 @@ export const TRIAL_DAYS = 7;
 export const PLAN_PRICE_USD = 7.99;
 export const ACTIVATION_CODE = 'MECA-ANUAL-799';
 
+export type ProfileRole = 'owner' | 'staff';
+
 export type Profile = {
   id: string;
+  role: ProfileRole;
   name: string;
   shopName: string;
   currency: CurrencyCode;
@@ -44,16 +47,22 @@ function loadProfilesRaw(): Profile[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.map(normalizeProfile);
+    return parsed.map((entry, index) => normalizeProfile(entry, index));
   } catch {
     return [];
   }
 }
 
-function normalizeProfile(raw: Profile): Profile {
+function normalizeProfile(raw: Profile, index: number): Profile {
   const createdAt = raw.createdAt || new Date().toISOString();
   return {
     ...raw,
+    role:
+      raw.role === 'owner' || raw.role === 'staff'
+        ? raw.role
+        : index === 0
+          ? 'owner'
+          : 'staff',
     name: raw.name || 'Sin nombre',
     shopName: raw.shopName || 'Mi taller',
     currency: normalizeCurrency(raw.currency),
@@ -160,8 +169,10 @@ export async function createProfile(
 ): Promise<Profile> {
   const now = new Date().toISOString();
   const salt = randomSalt();
+  const profiles = loadProfilesRaw();
   const profile: Profile = {
     id: crypto.randomUUID(),
+    role: profiles.length === 0 ? 'owner' : 'staff',
     name: input.name.trim(),
     shopName: input.shopName.trim(),
     currency: normalizeCurrency(input.currency),
@@ -170,7 +181,6 @@ export async function createProfile(
     createdAt: now,
     trialStart: now,
   };
-  const profiles = loadProfilesRaw();
   const isFirst = profiles.length === 0;
   saveProfiles([...profiles, profile]);
   if (isFirst) migrateLegacyData(profile.id);
@@ -241,6 +251,68 @@ export function activateProfile(
       expiresAt: expiresAt.toISOString(),
       code,
     },
+  };
+  updateProfile(updated);
+  return updated;
+}
+
+export function setProfileAccess(
+  profile: Profile,
+  months: number,
+): Profile {
+  const now = new Date();
+  const currentExpiry = profile.subscription
+    ? new Date(profile.subscription.expiresAt)
+    : null;
+  const base =
+    currentExpiry && currentExpiry.getTime() > now.getTime()
+      ? currentExpiry
+      : now;
+  const activatedAt = now;
+  const expiresAt = new Date(base);
+  expiresAt.setMonth(expiresAt.getMonth() + months);
+  const updated: Profile = {
+    ...profile,
+    subscription: {
+      activatedAt: activatedAt.toISOString(),
+      expiresAt: expiresAt.toISOString(),
+      code: 'ADMIN',
+    },
+  };
+  updateProfile(updated);
+  return updated;
+}
+
+export function revokeProfileAccess(profile: Profile): Profile {
+  const past = new Date();
+  past.setDate(past.getDate() - (TRIAL_DAYS + 1));
+  const updated: Profile = {
+    ...profile,
+    trialStart: past.toISOString(),
+    subscription: undefined,
+  };
+  updateProfile(updated);
+  return updated;
+}
+
+export function setProfileRole(
+  profile: Profile,
+  role: ProfileRole,
+): Profile {
+  const updated: Profile = { ...profile, role };
+  updateProfile(updated);
+  return updated;
+}
+
+export async function setProfilePin(
+  profile: Profile,
+  pin: string,
+): Promise<Profile> {
+  const salt = randomSalt();
+  const updated: Profile = {
+    ...profile,
+    pinSalt: salt,
+    pinHash: await hashPin(pin, salt),
   };
   updateProfile(updated);
   return updated;

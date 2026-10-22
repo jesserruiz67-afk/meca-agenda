@@ -10,6 +10,7 @@ import {
   Banknote,
   Landmark,
   CreditCard,
+  Link2,
   Cloud,
   Download,
   Loader2,
@@ -42,6 +43,7 @@ type Props = {
   profile: Profile;
   transactions: Transaction[];
   maintenances: Maintenance[];
+  methods: PaymentMethod[];
   onAdd: (transaction: Transaction) => void;
   onDelete: (id: string) => void;
 };
@@ -50,18 +52,23 @@ const METHOD_ICONS: Record<PaymentMethod, typeof Banknote> = {
   efectivo: Banknote,
   transferencia: Landmark,
   tarjeta: CreditCard,
+  paypal: Wallet,
+  link: Link2,
 };
 
 const SHORT_LABELS: Record<PaymentMethod, string> = {
   efectivo: 'Efectivo',
   transferencia: 'Transf.',
   tarjeta: 'Tarjeta',
+  paypal: 'PayPal',
+  link: 'Link',
 };
 
 export default function CashView({
   profile,
   transactions,
   maintenances,
+  methods,
   onAdd,
   onDelete,
 }: Props) {
@@ -83,6 +90,9 @@ export default function CashView({
   );
 
   const totals = useMemo(() => cashTotals(filtered), [filtered]);
+  const paymentMethods = (Object.keys(PAYMENT_LABELS) as PaymentMethod[]).filter(
+    (method) => methods.includes(method) || totals.byMethod[method] !== 0,
+  );
 
   const hasCount = countedCash.trim() !== '';
   const difference = hasCount ? Number(countedCash) - totals.expectedCash : 0;
@@ -256,8 +266,8 @@ export default function CashView({
           </div>
         </div>
 
-        <div className="mt-3 grid grid-cols-3 gap-1.5 border-t border-slate-800 pt-3 sm:mt-4 sm:gap-2 sm:pt-4">
-          {(Object.keys(PAYMENT_LABELS) as PaymentMethod[]).map((method) => {
+        <div className="mt-3 grid grid-cols-2 gap-1.5 border-t border-slate-800 pt-3 sm:mt-4 sm:grid-cols-3 sm:gap-2 sm:pt-4">
+          {paymentMethods.map((method) => {
             const Icon = METHOD_ICONS[method];
             return (
               <div
@@ -423,6 +433,7 @@ export default function CashView({
 
       {formOpen && (
         <TransactionForm
+          methods={methods}
           onSave={(transaction) => {
             onAdd(transaction);
             setFormOpen(false);

@@ -1,17 +1,18 @@
 import { useState, type FormEvent } from 'react';
 import { X, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 import type { PaymentMethod, Transaction, TransactionType } from '../types';
-import { PAYMENT_LABELS, todayISO } from '../lib/utils';
+import { PAYMENT_METHODS, todayISO } from '../lib/utils';
 
 const inputClass =
   'w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/60';
 
 type Props = {
+  methods?: PaymentMethod[];
   onSave: (transaction: Transaction) => void;
   onClose: () => void;
 };
 
-export default function TransactionForm({ onSave, onClose }: Props) {
+export default function TransactionForm({ methods, onSave, onClose }: Props) {
   const [form, setForm] = useState({
     type: 'ingreso' as TransactionType,
     date: todayISO(),
@@ -144,9 +145,14 @@ export default function TransactionForm({ onSave, onClose }: Props) {
                   }))
                 }
               >
-                {Object.entries(PAYMENT_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
+                {PAYMENT_METHODS.filter(
+                  (method) =>
+                    !methods ||
+                    methods.includes(method.id) ||
+                    method.id === form.method,
+                ).map((method) => (
+                  <option key={method.id} value={method.id}>
+                    {method.label}
                   </option>
                 ))}
               </select>

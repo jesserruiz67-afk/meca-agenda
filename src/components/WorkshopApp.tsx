@@ -22,7 +22,14 @@ import {
   initials,
   type Access,
   type Profile,
+  type ProfileRole,
 } from '../lib/profiles';
+import {
+  loadWorkshopSettings,
+  saveWorkshopSettings,
+  type AppSettings,
+  type WorkshopSettings,
+} from '../lib/settings';
 import { setActiveCurrency, toISO } from '../lib/utils';
 import AgendaView from './AgendaView';
 import BackupView from './BackupView';
@@ -31,6 +38,7 @@ import InventoryView from './InventoryView';
 import MaintenanceForm from './MaintenanceForm';
 import ReportsView from './ReportsView';
 import AccountMenu from './AccountMenu';
+import AdminPanel from './AdminPanel';
 
 type Tab = 'agenda' | 'inventario' | 'caja' | 'informes' | 'respaldo';
 
@@ -150,18 +158,35 @@ function seedExamples(): Maintenance[] {
 
 type Props = {
   profile: Profile;
+  profiles: Profile[];
   access: Access;
+  appSettings: AppSettings;
   onUpdateProfile: (profile: Profile) => void;
   onActivate: (code: string) => Promise<boolean>;
   onLogout: () => void;
+  onSaveAppSettings: (settings: AppSettings) => void;
+  onAdminUpdateProfile: (profile: Profile) => void;
+  onAdminSetAccess: (
+    profileId: string,
+    action: 'activate' | 'revoke',
+  ) => void;
+  onAdminResetPin: (profileId: string, pin: string) => Promise<void>;
+  onAdminSetRole: (profileId: string, role: ProfileRole) => void;
 };
 
 export default function WorkshopApp({
   profile,
+  profiles,
   access,
+  appSettings,
   onUpdateProfile,
   onActivate,
   onLogout,
+  onSaveAppSettings,
+  onAdminUpdateProfile,
+  onAdminSetAccess,
+  onAdminResetPin,
+  onAdminSetRole,
 }: Props) {
   setActiveCurrency(profile.currency);
 
@@ -175,9 +200,13 @@ export default function WorkshopApp({
   const [transactions, setTransactions] = useState<Transaction[]>(() =>
     loadTransactions(profile.id),
   );
+  const [settings, setSettings] = useState<WorkshopSettings>(() =>
+    loadWorkshopSettings(profile.id),
+  );
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<Maintenance | null>(null);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
 
   function setTab(next: Tab) {
     setTabState(next);
@@ -197,6 +226,10 @@ export default function WorkshopApp({
   useEffect(() => {
     saveTransactions(profile.id, transactions);
   }, [profile.id, transactions]);
+
+  useEffect(() => {
+    if (profile.role !== 'owner') setAdminOpen(false);
+  }, [profile.role]);
 
   function handleSaveItem(item: Maintenance) {
     if (editingItem) {
@@ -290,7 +323,10 @@ export default function WorkshopApp({
       );
     }
     const { generateInvoicePdf } = await import('../lib/invoice');
-    generateInvoicePdf({ ...item, invoiceNumber }, profile.shopName);
+    generateInvoicePdf({ ...item, invoiceNumber }, profile.shopName, {
+      phone: settings.shopPhone,
+      address: settings.shopAddress,
+    });
   }
 
   function handleAddProduct(product: Product) {
@@ -333,6 +369,17 @@ export default function WorkshopApp({
     setItems(loadMaintenances(profile.id));
     setProducts(loadProducts(profile.id));
     setTransactions(loadTransactions(profile.id));
+  }
+
+  function handleAdminSave(
+    nextProfile: Profile,
+    nextSettings: WorkshopSettings,
+    nextAppSettings: AppSettings,
+  ) {
+    onUpdateProfile(nextProfile);
+    setSettings(nextSettings);
+    saveWorkshopSettings(nextProfile.id, nextSettings);
+    onSaveAppSettings(nextAppSettings);
   }
 
   const trialEnding =
@@ -421,6 +468,7 @@ export default function WorkshopApp({
           <AgendaView
             items={items}
             shopName={profile.shopName}
+            settings={settings}
             onNew={() => {
               setEditingItem(null);
               setShowForm(true);
@@ -450,6 +498,7 @@ export default function WorkshopApp({
             profile={profile}
             transactions={transactions}
             maintenances={items}
+            methods={settings.enabledMethods}
             onAdd={handleAddTransaction}
             onDelete={handleDeleteTransaction}
           />
@@ -495,11 +544,27 @@ export default function WorkshopApp({
       {showForm && (
         <MaintenanceForm
           editing={editingItem ?? undefined}
+          methods={settings.enabledMethods}
           onSave={handleSaveItem}
           onClose={() => {
             setShowForm(false);
             setEditingItem(null);
           }}
+        />
+      )}
+
+      {adminOpen && (
+        <AdminPanel
+          profile={profile}
+          profiles={profiles}
+          settings={settings}
+          appSettings={appSettings}
+          onSave={handleAdminSave}
+          onUpdateLocalProfile={onAdminUpdateProfile}
+          onSetAccess={onAdminSetAccess}
+          onResetPin={onAdminResetPin}
+          onSetRole={onAdminSetRole}
+          onClose={() => setAdminOpen(false)}
         />
       )}
 
@@ -510,6 +575,14 @@ export default function WorkshopApp({
           onUpdateProfile={onUpdateProfile}
           onActivate={onActivate}
           onLogout={onLogout}
+          onOpenAdmin={
+            profile.role === 'owner'
+              ? () => {
+                  setAccountOpen(false);
+                  setAdminOpen(true);
+                }
+              : undefined
+          }
           onClose={() => setAccountOpen(false)}
         />
       )}

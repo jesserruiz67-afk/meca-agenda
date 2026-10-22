@@ -1,6 +1,11 @@
 export type VehicleType = 'carro' | 'moto';
 
-export type PaymentMethod = 'efectivo' | 'transferencia' | 'tarjeta';
+export type PaymentMethod =
+  | 'efectivo'
+  | 'transferencia'
+  | 'tarjeta'
+  | 'paypal'
+  | 'link';
 
 export type Maintenance = {
   id: string;

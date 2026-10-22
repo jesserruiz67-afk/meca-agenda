@@ -181,9 +181,19 @@ export const VEHICLE_LABELS = {
   moto: 'Moto',
 } as const;
 
+export const PAYMENT_METHODS: { id: PaymentMethod; label: string }[] = [
+  { id: 'efectivo', label: 'Efectivo' },
+  { id: 'transferencia', label: 'Transferencia' },
+  { id: 'tarjeta', label: 'Tarjeta' },
+  { id: 'paypal', label: 'PayPal' },
+  { id: 'link', label: 'Link de pago' },
+];
+
 export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   efectivo: 'Efectivo',
   transferencia: 'Transferencia',
   tarjeta: 'Tarjeta',
+  paypal: 'PayPal',
+  link: 'Link de pago',
 };
 

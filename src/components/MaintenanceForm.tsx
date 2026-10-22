@@ -5,7 +5,7 @@ import type {
   PaymentMethod,
   VehicleType,
 } from '../types';
-import { PAYMENT_LABELS, todayISO } from '../lib/utils';
+import { PAYMENT_METHODS, todayISO } from '../lib/utils';
 
 const SERVICES = [
   'Cambio de aceite',
@@ -24,11 +24,17 @@ const inputClass =
 
 type Props = {
   editing?: Maintenance;
+  methods?: PaymentMethod[];
   onSave: (item: Maintenance) => void;
   onClose: () => void;
 };
 
-export default function MaintenanceForm({ editing, onSave, onClose }: Props) {
+export default function MaintenanceForm({
+  editing,
+  methods,
+  onSave,
+  onClose,
+}: Props) {
   const [form, setForm] = useState(() => ({
     clientName: editing?.clientName ?? '',
     clientPhone: editing?.clientPhone ?? '',
@@ -343,9 +349,14 @@ export default function MaintenanceForm({ editing, onSave, onClose }: Props) {
                     update('paymentMethod', e.target.value as PaymentMethod)
                   }
                 >
-                  {Object.entries(PAYMENT_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
+                  {PAYMENT_METHODS.filter(
+                    (method) =>
+                      !methods ||
+                      methods.includes(method.id) ||
+                      method.id === form.paymentMethod,
+                  ).map((method) => (
+                    <option key={method.id} value={method.id}>
+                      {method.label}
                     </option>
                   ))}
                 </select>

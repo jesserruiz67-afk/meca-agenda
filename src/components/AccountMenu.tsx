@@ -3,8 +3,10 @@ import {
   AlertCircle,
   BadgeCheck,
   Clock3,
+  ChevronRight,
   Loader2,
   LogOut,
+  Settings2,
   ShieldCheck,
   X,
 } from 'lucide-react';
@@ -23,6 +25,7 @@ type Props = {
   onUpdateProfile: (profile: Profile) => void;
   onActivate: (code: string) => Promise<boolean>;
   onLogout: () => void;
+  onOpenAdmin?: () => void;
   onClose: () => void;
 };
 
@@ -32,6 +35,7 @@ export default function AccountMenu({
   onUpdateProfile,
   onActivate,
   onLogout,
+  onOpenAdmin,
   onClose,
 }: Props) {
   const [code, setCode] = useState('');
@@ -77,6 +81,7 @@ export default function AccountMenu({
               </h2>
               <p className="truncate text-xs text-slate-400">
                 {profile.shopName}
+                {profile.role === 'owner' ? ' · Admin' : ''}
               </p>
             </div>
           </div>
@@ -198,6 +203,27 @@ export default function AccountMenu({
               <p className="mt-2 text-[11px] text-emerald-300">{success}</p>
             )}
           </form>
+        )}
+
+        {onOpenAdmin && (
+          <button
+            type="button"
+            onClick={onOpenAdmin}
+            className="mt-4 flex w-full items-center gap-3 rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-left transition hover:border-amber-500/40 hover:bg-slate-900"
+          >
+            <span className="rounded-lg bg-amber-500/15 p-2 text-amber-400">
+              <Settings2 className="h-4 w-4" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold text-white">
+                Administración
+              </span>
+              <span className="block text-[11px] text-slate-400">
+                Editar taller, cobros, panel y perfiles
+              </span>
+            </span>
+            <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+          </button>
         )}
 
         <div className="mt-5 border-t border-slate-800 pt-4">
