@@ -91,10 +91,10 @@ export default function BackupView({ buildBackup, onRestored }: Props) {
       }
       return;
     }
+    handleDownload();
     setError(
       'Este navegador no permite compartir archivos. Se descargó el respaldo: subilo a Drive manualmente.',
     );
-    handleDownload();
   }
 
   function handleFile(event: ChangeEvent<HTMLInputElement>) {
