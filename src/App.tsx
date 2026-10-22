@@ -136,7 +136,21 @@ const TABS: { id: Tab; label: string; icon: typeof CalendarDays }[] = [
 ];
 
 export default function App() {
-  const [tab, setTab] = useState<Tab>('agenda');
+  const [tab, setTabState] = useState<Tab>(() => {
+    const hash = window.location.hash.replace('#', '');
+    return (['agenda', 'inventario', 'caja', 'respaldo'] as Tab[]).includes(
+      hash as Tab,
+    )
+      ? (hash as Tab)
+      : 'agenda';
+  });
+
+  function setTab(next: Tab) {
+    setTabState(next);
+    if (window.location.hash !== `#${next}`) {
+      window.history.replaceState(null, '', `#${next}`);
+    }
+  }
   const [items, setItems] = useState<Maintenance[]>(() => loadMaintenances());
   const [products, setProducts] = useState<Product[]>(() => loadProducts());
   const [transactions, setTransactions] = useState<Transaction[]>(() =>
@@ -297,22 +311,24 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:py-10">
-        <header className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-amber-500/15 p-3 text-amber-400 ring-1 ring-amber-500/30">
-              <Wrench className="h-6 w-6" />
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-slate-950 text-slate-100">
+      <header className="shrink-0 border-b border-slate-900 bg-slate-950/95 px-4 py-2.5">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="rounded-xl bg-amber-500/15 p-2 text-amber-400 ring-1 ring-amber-500/30">
+              <Wrench className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">MecaAgenda</h1>
-              <p className="text-sm text-slate-400">
+              <h1 className="text-lg font-bold leading-none tracking-tight">
+                MecaAgenda
+              </h1>
+              <p className="mt-0.5 hidden text-xs text-slate-400 sm:block">
                 Agenda, inventario y caja del taller
               </p>
             </div>
           </div>
 
-          <nav className="flex gap-1 rounded-xl bg-slate-900 p-1 ring-1 ring-slate-800">
+          <nav className="hidden gap-1 rounded-xl bg-slate-900 p-1 ring-1 ring-slate-800 lg:flex">
             {TABS.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
@@ -328,58 +344,71 @@ export default function App() {
               </button>
             ))}
           </nav>
-        </header>
+        </div>
+      </header>
 
-        <main className="mt-6">
-          {tab === 'agenda' && (
-            <AgendaView
-              items={items}
-              shopName={SHOP_NAME}
-              onNew={() => {
-                setEditingItem(null);
-                setShowForm(true);
-              }}
-              onSeed={() => setItems(seedExamples())}
-              onToggle={handleToggle}
-              onDelete={handleDeleteItem}
-              onInvoice={handleInvoice}
-              onEdit={(item) => {
-                setEditingItem(item);
-                setShowForm(true);
-              }}
-            />
-          )}
+      <main className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col">
+        {tab === 'agenda' && (
+          <AgendaView
+            items={items}
+            shopName={SHOP_NAME}
+            onNew={() => {
+              setEditingItem(null);
+              setShowForm(true);
+            }}
+            onSeed={() => setItems(seedExamples())}
+            onToggle={handleToggle}
+            onDelete={handleDeleteItem}
+            onInvoice={handleInvoice}
+            onEdit={(item) => {
+              setEditingItem(item);
+              setShowForm(true);
+            }}
+          />
+        )}
 
-          {tab === 'inventario' && (
-            <InventoryView
-              products={products}
-              onAdd={handleAddProduct}
-              onUpdate={handleUpdateProduct}
-              onDelete={handleDeleteProduct}
-            />
-          )}
+        {tab === 'inventario' && (
+          <InventoryView
+            products={products}
+            onAdd={handleAddProduct}
+            onUpdate={handleUpdateProduct}
+            onDelete={handleDeleteProduct}
+          />
+        )}
 
-          {tab === 'caja' && (
-            <CashView
-              transactions={transactions}
-              maintenances={items}
-              onAdd={handleAddTransaction}
-              onDelete={handleDeleteTransaction}
-            />
-          )}
+        {tab === 'caja' && (
+          <CashView
+            transactions={transactions}
+            maintenances={items}
+            onAdd={handleAddTransaction}
+            onDelete={handleDeleteTransaction}
+          />
+        )}
 
-          {tab === 'respaldo' && (
-            <BackupView
-              buildBackup={buildBackup}
-              onRestored={handleRestored}
-            />
-          )}
-        </main>
+        {tab === 'respaldo' && (
+          <BackupView buildBackup={buildBackup} onRestored={handleRestored} />
+        )}
+      </main>
 
-        <footer className="border-t border-slate-900 py-5 text-center text-xs text-slate-500">
-          Los datos se guardan en este dispositivo (localStorage).
-        </footer>
-      </div>
+      <nav className="shrink-0 border-t border-slate-800 bg-slate-950 pb-[env(safe-area-inset-bottom)] lg:hidden">
+        <div className="mx-auto flex w-full max-w-5xl items-stretch">
+          {TABS.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setTab(id)}
+              className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium transition ${
+                tab === id
+                  ? 'text-amber-400'
+                  : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              <Icon className="h-5 w-5" />
+              {label}
+            </button>
+          ))}
+        </div>
+      </nav>
 
       {showForm && (
         <MaintenanceForm

@@ -97,8 +97,9 @@ export default function AgendaView({
   ];
 
   return (
-    <div>
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="shrink-0 px-4 pt-3">
+        <section className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         <StatCard
           label="Vencidos"
           value={counts.vencidos}
@@ -123,16 +124,17 @@ export default function AgendaView({
           icon={ListChecks}
           accent="bg-slate-500/15 text-slate-300"
         />
-      </section>
+        </section>
+      </div>
 
-      <section className="mt-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="shrink-0 px-4 pt-3">
+        <div className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
           {filters.map((option) => (
             <button
               key={option.id}
               type="button"
               onClick={() => setFilter(option.id)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+              className={`shrink-0 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
                 filter === option.id
                   ? 'bg-amber-500 text-slate-950'
                   : 'bg-slate-900 text-slate-300 ring-1 ring-slate-800 hover:bg-slate-800'
@@ -140,7 +142,7 @@ export default function AgendaView({
             >
               {option.label}
               <span
-                className={`ml-1.5 text-xs ${
+                className={`ml-1 text-[11px] ${
                   filter === option.id ? 'text-slate-800' : 'text-slate-500'
                 }`}
               >
@@ -150,38 +152,41 @@ export default function AgendaView({
           ))}
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="mt-2 flex items-center gap-2">
           <select
             value={vehicleFilter}
             onChange={(e) =>
               setVehicleFilter(e.target.value as VehicleFilter)
             }
-            className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/60"
+            className="w-24 shrink-0 rounded-lg border border-slate-800 bg-slate-900 px-2 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/60 sm:w-auto sm:px-3 sm:text-sm"
           >
-            <option value="todos">Todos los vehículos</option>
+            <option value="todos">Todos</option>
             <option value="carro">Carros</option>
             <option value="moto">Motos</option>
           </select>
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar cliente, placa..."
-              className="w-full rounded-lg border border-slate-800 bg-slate-900 py-2 pl-9 pr-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/60 sm:w-56"
+              placeholder="Buscar..."
+              className="w-full rounded-lg border border-slate-800 bg-slate-900 py-2 pl-8 pr-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/60 sm:w-56"
             />
           </div>
           <button
             type="button"
             onClick={onNew}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-amber-400"
+            aria-label="Nuevo registro"
+            className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-amber-400"
           >
-            <Plus className="h-4 w-4" /> Nuevo
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Nuevo</span>
           </button>
         </div>
-      </section>
+      </div>
 
-      <section className="mt-5 space-y-3 pb-10">
+      <section className="mt-3 flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pb-4">
+        <div className="space-y-3">
         {visibleItems.map((item) => (
           <MaintenanceCard
             key={item.id}
@@ -230,6 +235,7 @@ export default function AgendaView({
             </p>
           </div>
         )}
+        </div>
       </section>
     </div>
   );

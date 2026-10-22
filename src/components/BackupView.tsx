@@ -133,25 +133,28 @@ export default function BackupView({ buildBackup, onRestored }: Props) {
   }
 
   return (
-    <div>
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+    <div className="h-full min-h-0 overflow-y-auto overscroll-contain px-4 pb-4 pt-3">
+      <section className="grid grid-cols-3 gap-2 sm:gap-3">
         <StatCard
-          label="Registros de agenda"
+          label="Registros"
           value={summary.maintenances.length}
           icon={Database}
           accent="bg-sky-500/15 text-sky-400"
+          compact
         />
         <StatCard
-          label="Productos en inventario"
+          label="Productos"
           value={summary.products.length}
           icon={Package}
           accent="bg-amber-500/15 text-amber-400"
+          compact
         />
         <StatCard
-          label="Movimientos manuales"
+          label="Movimientos"
           value={summary.transactions.length}
           icon={Wallet}
           accent="bg-emerald-500/15 text-emerald-400"
+          compact
         />
       </section>
 

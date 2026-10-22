@@ -37,6 +37,12 @@ const METHOD_ICONS: Record<PaymentMethod, typeof Banknote> = {
   tarjeta: CreditCard,
 };
 
+const SHORT_LABELS: Record<PaymentMethod, string> = {
+  efectivo: 'Efectivo',
+  transferencia: 'Transf.',
+  tarjeta: 'Tarjeta',
+};
+
 export default function CashView({
   transactions,
   maintenances,
@@ -139,8 +145,9 @@ export default function CashView({
   const periodLabel = period === 'hoy' ? 'hoy' : 'este mes';
 
   return (
-    <div>
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="shrink-0 px-4 pt-3">
+      <section className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         <StatCard
           label="Ingresos"
           value={formatMoney(totals.ingresos)}
@@ -166,59 +173,67 @@ export default function CashView({
           accent="bg-amber-500/15 text-amber-400"
         />
       </section>
+      </div>
 
-      <section className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-2">
+      <div className="shrink-0 px-4 pt-3">
+        <section className="flex items-center justify-between gap-2">
+          <div className="flex gap-1.5">
+            <button
+              type="button"
+              onClick={() => setPeriod('hoy')}
+              className={`rounded-lg px-2.5 py-1.5 text-xs font-medium sm:text-sm ${
+                period === 'hoy'
+                  ? 'bg-amber-500 text-slate-950'
+                  : 'bg-slate-900 text-slate-300 ring-1 ring-slate-800 hover:bg-slate-800'
+              }`}
+            >
+              Hoy
+            </button>
+            <button
+              type="button"
+              onClick={() => setPeriod('mes')}
+              className={`rounded-lg px-2.5 py-1.5 text-xs font-medium sm:text-sm ${
+                period === 'mes'
+                  ? 'bg-amber-500 text-slate-950'
+                  : 'bg-slate-900 text-slate-300 ring-1 ring-slate-800 hover:bg-slate-800'
+              }`}
+            >
+              Este mes
+            </button>
+          </div>
           <button
             type="button"
-            onClick={() => setPeriod('hoy')}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
-              period === 'hoy'
-                ? 'bg-amber-500 text-slate-950'
-                : 'bg-slate-900 text-slate-300 ring-1 ring-slate-800 hover:bg-slate-800'
-            }`}
+            onClick={() => setFormOpen(true)}
+            aria-label="Nuevo movimiento"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-amber-400"
           >
-            Hoy
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Nuevo movimiento</span>
           </button>
-          <button
-            type="button"
-            onClick={() => setPeriod('mes')}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
-              period === 'mes'
-                ? 'bg-amber-500 text-slate-950'
-                : 'bg-slate-900 text-slate-300 ring-1 ring-slate-800 hover:bg-slate-800'
-            }`}
-          >
-            Este mes
-          </button>
-        </div>
-        <button
-          type="button"
-          onClick={() => setFormOpen(true)}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-amber-400"
-        >
-          <Plus className="h-4 w-4" /> Nuevo movimiento
-        </button>
-      </section>
+        </section>
+      </div>
 
-      <section className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+      <div className="shrink-0 px-4 pt-3">
+      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-3 sm:p-5">
+        <h2 className="flex items-center gap-2 text-xs font-semibold text-white sm:text-sm">
           <Calculator className="h-4 w-4 text-amber-400" />
           Arqueo de caja de {periodLabel}
         </h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+        <div className="mt-3 grid grid-cols-3 gap-2 sm:mt-4 sm:gap-4">
           <div>
-            <p className="text-xs text-slate-400">Efectivo esperado</p>
-            <p className="mt-1 text-xl font-bold text-white">
+            <p className="text-[11px] text-slate-400 sm:text-xs">
+              Efectivo esperado
+            </p>
+            <p className="mt-1 text-base font-bold text-white sm:text-xl">
               {formatMoney(totals.expectedCash)}
             </p>
-            <p className="mt-1 text-[11px] text-slate-500">
+            <p className="mt-1 hidden text-[11px] text-slate-500 sm:block">
               Cobros en efectivo {formatMoney(totals.cashIn)} · Egresos{' '}
               {formatMoney(totals.cashOut)}
             </p>
           </div>
           <div>
-            <label className="text-xs text-slate-400">
+            <label className="text-[11px] text-slate-400 sm:text-xs">
               Efectivo contado
             </label>
             <input
@@ -228,52 +243,60 @@ export default function CashView({
               value={countedCash}
               onChange={(e) => setCountedCash(e.target.value)}
               placeholder="0"
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/60"
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-2 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/60 sm:px-3 sm:py-2 sm:text-sm"
             />
           </div>
           <div>
-            <p className="text-xs text-slate-400">Diferencia</p>
-            <p className={`mt-1 text-xl font-bold ${differenceClass}`}>
+            <p className="text-[11px] text-slate-400 sm:text-xs">Diferencia</p>
+            <p
+              className={`mt-1 text-base font-bold sm:text-xl ${differenceClass}`}
+            >
               {hasCount ? formatMoney(difference) : '—'}
             </p>
-            <p className={`mt-1 text-[11px] ${differenceClass}`}>
+            <p className={`mt-1 text-[10px] sm:text-[11px] ${differenceClass}`}>
               {differenceLabel}
             </p>
           </div>
         </div>
 
-        <div className="mt-4 grid gap-2 border-t border-slate-800 pt-4 sm:grid-cols-3">
+        <div className="mt-3 grid grid-cols-3 gap-1.5 border-t border-slate-800 pt-3 sm:mt-4 sm:gap-2 sm:pt-4">
           {(Object.keys(PAYMENT_LABELS) as PaymentMethod[]).map((method) => {
             const Icon = METHOD_ICONS[method];
             return (
               <div
                 key={method}
-                className="flex items-center justify-between rounded-lg bg-slate-800/50 px-3 py-2"
+                className="min-w-0 rounded-lg bg-slate-800/50 px-2 py-1.5 sm:px-3 sm:py-2"
               >
-                <span className="inline-flex items-center gap-2 text-xs text-slate-400">
-                  <Icon className="h-3.5 w-3.5" />
-                  {PAYMENT_LABELS[method]}
+                <span className="flex min-w-0 items-center gap-1 text-[10px] text-slate-400 sm:gap-2 sm:text-xs">
+                  <Icon className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
+                  <span className="truncate sm:hidden">
+                    {SHORT_LABELS[method]}
+                  </span>
+                  <span className="hidden truncate sm:inline">
+                    {PAYMENT_LABELS[method]}
+                  </span>
                 </span>
-                <span
-                  className={`text-sm font-semibold ${
+                <p
+                  className={`mt-1 truncate text-xs font-semibold sm:text-sm ${
                     totals.byMethod[method] < 0
                       ? 'text-red-300'
                       : 'text-slate-200'
                   }`}
                 >
                   {formatMoney(totals.byMethod[method])}
-                </span>
+                </p>
               </div>
             );
           })}
         </div>
       </section>
+      </div>
 
-      <section className="mt-6 pb-10">
+      <section className="mt-2 flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pb-4">
         <h2 className="mb-1 text-sm font-semibold text-slate-300">
           Movimientos de {periodLabel}
         </h2>
-        <p className="mb-3 text-xs text-slate-500">
+        <p className="mb-3 text-[11px] text-slate-500">
           Los cobros de servicios se agregan automáticamente al completar un
           trabajo en la Agenda.
         </p>
