@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Search,
   Plus,
@@ -42,6 +42,11 @@ export default function AgendaView({
   const [filter, setFilter] = useState<FilterId>('pendientes');
   const [vehicleFilter, setVehicleFilter] = useState<VehicleFilter>('todos');
   const [query, setQuery] = useState('');
+  const listRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    listRef.current?.scrollTo({ top: 0 });
+  }, [filter, vehicleFilter, query]);
 
   const counts = useMemo(
     () => ({
@@ -221,7 +226,7 @@ export default function AgendaView({
         </div>
       </div>
 
-      <section className="no-scrollbar mt-3 flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pb-4">
+      <section ref={listRef} className="no-scrollbar mt-3 flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pb-4">
         {filter === 'completados' && (
           <div className="mb-2 flex items-center justify-between gap-2 text-[11px] text-slate-400">
             <span>Mostrando completados ({counts.completados})</span>
