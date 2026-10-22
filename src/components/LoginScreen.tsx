@@ -116,8 +116,8 @@ export default function LoginScreen({
   }
 
   return (
-    <div className="h-[100dvh] overflow-y-auto bg-slate-950 text-slate-100">
-      <div className="mx-auto flex min-h-full w-full max-w-md flex-col justify-center px-4 py-8">
+    <div className="no-scrollbar h-[100dvh] overflow-y-auto overscroll-contain bg-slate-950 text-slate-100">
+      <div className="mx-auto flex min-h-full w-full max-w-md flex-col justify-start px-4 py-6 sm:justify-center sm:py-8">
         <div className="mb-6 flex flex-col items-center text-center">
           <div className="rounded-2xl bg-amber-500/15 p-3.5 text-amber-400 ring-1 ring-amber-500/30">
             <Wrench className="h-7 w-7" />
@@ -200,7 +200,6 @@ export default function LoginScreen({
               <div className="relative mt-1">
                 <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                 <input
-                  autoFocus
                   type="password"
                   inputMode="numeric"
                   autoComplete="current-password"
@@ -210,7 +209,7 @@ export default function LoginScreen({
                     setPin(event.target.value.replace(/\D/g, '').slice(0, 8))
                   }
                   placeholder="4 a 8 números"
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 py-2.5 pl-9 pr-3 text-center text-lg tracking-[0.3em] text-white placeholder:text-sm placeholder:tracking-normal placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/60"
+                  className="login-pin w-full rounded-lg border border-slate-700 bg-slate-950 py-2.5 pl-9 pr-3 text-center text-lg tracking-[0.3em] text-white placeholder:text-sm placeholder:tracking-normal placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/60"
                 />
               </div>
 
@@ -271,7 +270,7 @@ export default function LoginScreen({
                 placeholder="Juan Pérez"
                 aria-label="Tu nombre"
                 autoComplete="name"
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/60"
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/60 sm:text-sm"
               />
 
               <label className="mt-3 block text-xs font-medium text-slate-300">
@@ -282,7 +281,7 @@ export default function LoginScreen({
                 onChange={(event) => setShopName(event.target.value)}
                 placeholder="Taller Los Hermanos"
                 aria-label="Nombre del taller"
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/60"
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/60 sm:text-sm"
               />
 
               <label className="mt-3 block text-xs font-medium text-slate-300">
@@ -294,7 +293,7 @@ export default function LoginScreen({
                 onChange={(event) =>
                   setCurrency(event.target.value as CurrencyCode)
                 }
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500/60"
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base text-white focus:outline-none focus:ring-2 focus:ring-amber-500/60 sm:text-sm"
               >
                 {CURRENCIES.map((option) => (
                   <option key={option.code} value={option.code}>
@@ -319,7 +318,7 @@ export default function LoginScreen({
                       )
                     }
                     placeholder="4 a 8 números"
-                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-xs placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/60"
+                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base text-white placeholder:text-xs placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/60 sm:text-sm"
                   />
                 </div>
                 <div>
@@ -337,7 +336,7 @@ export default function LoginScreen({
                       )
                     }
                     placeholder="Repetí el PIN"
-                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white placeholder:text-xs placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/60"
+                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base text-white placeholder:text-xs placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/60 sm:text-sm"
                   />
                 </div>
               </div>
